@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script type="module" src="indexWaveResponsiv.js"></script>
+  <title>Interactive 3-Phase Waveform & Phasor Visualization Tool for Relay Protection</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Experience interactive visualizations and control of generated electrical power waveforms for relay protection. View evolving impedance generated from waveform currents and voltages. Adjust parameters and view real-time phasor changes for optimal analysis.">
+
+  <!-- Open Graph tags for better social media sharing -->
+  <meta property="og:title" content="Interactive Waveform & Phasor Visualization Tool">
+  <meta property="og:description"
+    content="Explore dynamic electrical waveforms and control phasor displays with real-time parameter adjustments. See resulting impedance">
+  <meta property="og:image" content="myWaveforms.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://delgadorelayprotectionreference.com/indexWaveResponsive.html">
+
+  <!-- Keywords for SEO -->
+  <meta name="keywords"
+    content="waveform visualization, phasor analysis, relay protection tool, electrical engineering, interactive waveforms, power system analysis">
+
+  <script src="d3.v7.min.js" charset="utf-8"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+  <link rel="stylesheet" type="text/css" href="style - Cópia.css" />
+
+  <noscript>
+    Enhance your understanding of electrical faults with this visualization tool, tailored for relay protection
+    engineers to see real-time waveform and phasor analysis.
+  </noscript>
+  <style></style>
+</head>
+
+<body class='with-3d-shadow with-transitions'>
+  <main id="container">
+    <section class="column-1" aria-label="Graph of real-time waveform based on electrical parameters">
+      <div class="svg-container" id="svg1" aria-label="3 phase fault currents IA IB IC">
+        <p class="starterContent">-</p>
+      </div>
+      <div class="svg-container" id="svg2" aria-label="3 phase fault voltages VA VB VC">
+        <p class="starterContent">-</p>
+      </div>
+      <div class="svg-container" id="svg3" aria-label="Graph of dummy digital Input and Output">
+        <p class="starterContent">-</p>
+      </div>
+      <div class="svg-container" id="merged-svg-container" style="display: none;justify-content: center;">
+        <p class="starterContent">Placeholder for second row - "new SVG to be defined"</p>
+      </div>
+      <div class="scroll-wrapper svg-container" id="scrollWrapper" style="display: none;overflow-y:auto">
+        <div id="mosaic-container">
+          <!-- Mosaic Items -->
+          <div class="mosaic-tile" id="cell-1">
+          </div>
+          <div class="mosaic-tile" id="cell-2">
+            <svg width="150px" height="150px" id="svgSequenceImpedance"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-3">
+            <svg width="150px" height="150px" id="apparentPower"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-4">
+            <svg width="150px" height="150px" id="svgSequenceCurrentAndVoltage"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-5">
+            <svg width="150px" height="150px" id="svgZaids"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-6">
+            <svg width="150px" height="150px" id="admittance"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-7">
+            <svg width="150px" height="150px" id="svgPhasePhaseVoltage"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-8">
+            <svg width="150px" height="150px" id="svgPhasePhaseCurrent"></svg>
+          </div>
+          <div class="mosaic-tile" id="cell-9">
+            <svg width="150px" height="150px" id="svgPhasePhaseImpedance"></svg>
+          </div>
+        </div>
+      </div>
+      <button id="update-ZMode" style="color:white; display:none;">Update Z</button>
+    </section>
+    <section class="column-2">
+      <div class="row-large" id="polarRow1" style="position:relative">
+        <div style="display:flex; flex-direction: row;justify-content: space-evenly;">
+          <div id="timeStamp"></div>
+          <div style="width:100px;">
+            <button style="color:white; width:100px; height:30px;">
+              <a href="https://youtu.be/319TuQjmYaU" target="_blank" style="color:white; line-height:1;">Watch Video</a>
+            </button>
+          </div>
+          <p> v1.0</p>
+        </div>
+        <div id="viz_polar" aria-label="Graph of corresponding 3 phase currents and voltages as phasors">
+          <p class="starterContent">-</p>
+        </div>
+      </div>
+      <div class="row-small" id="polarRow2">
+
+        <div id="table-control" class="inputContainer draggable-control">
+          <div class="controlPanel" style="padding-bottom: 1rem;">
+            <h2 style="padding-bottom:1rem;">Control</h2>
+            <div
+              style="display:flex;flex-direction: column;justify-content: space-evenly;align-items: stretch;padding-bottom:1rem;gap: 0.2rem">
+              <div style="display: flex;flex-direction: row;justify-content: center;gap: 0.2rem;">
+                <button id="toggleViews" style="width:50px;height:50px;">
+                  <div id='cartesian' style="width:35px; height:35px; overflow:hidden;display:block;">
+                    <svg viewBox="60 56 140 140" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%;">
+                      <g>
+                        <!-- Top line -->
+                        <text x="130" y="100" style="font-size:40px; fill:white;" class="textPolarCartesian"
+                          text-anchor="middle">
+                          R + j X
+                        </text>
+
+                        <!-- Bottom line -->
+                        <text x="130" y="160" style="font-size:48px; fill:white;" class="textPolarCartesian"
+                          text-anchor="middle">
+                          A
+                          <!-- Underline in SVG using tspan -->
+                          <tspan style="font-size:48px; fill:white;text-decoration: underline;"
+                            class="textPolarCartesian">/θº
+                          </tspan>
+                        </text>
+                      </g>
+                    </svg>
+                  </div>
+                  <div id='polar' style="width:35px; height:35px; border-radius: 50%; overflow:hidden;display:none;">
+                    <svg viewBox="60 56 140 140" preserveAspectRatio="xMidYMid meet" style="width:100%; height:100%;">
+                      <g id="menuSwitchToVectors">
+                        <g class="vector">
+                          <line x1="125" y1="125" x2="188.33333333333334" y2="125" marker-end="url(#arrow-A)"
+                            style="stroke: red; stroke-width: 4px; stroke-opacity: 1;" />
+                        </g>
+                        <g class="vector">
+                          <line x1="125" y1="125" x2="93.33333333333333" y2="70.15172442698557"
+                            marker-end="url(#arrow-B)" style="stroke: gold; stroke-width: 4px; stroke-opacity: 1;" />
+                        </g>
+                        <g class="vector">
+                          <line x1="125" y1="125" x2="93.33333333333333" y2="179.84827557301443"
+                            marker-end="url(#arrow-C)" style="stroke: blue; stroke-width: 4px; stroke-opacity: 1;" />
+                        </g>
+                      </g>
+                    </svg>
+                  </div>
+                </button>
+              </div>
+              <div style="display: flex;flex-direction: row;justify-content: center;gap: 0.2rem">
+                <button id="toggle-header-button" style="width:50px;height:50px;">
+                  <i class='bx bxs-info-circle' id="hideInfo"></i>
+                  <i class='bx bx-info-circle diagonal-strikethrough' id="showInfo"
+                    style="display:none;stroke:white;"></i>
+                </button>
+              </div>
+            </div>
+            <button id="toggle-reset-button">Reset</button>
+          </div>
+        </div>
+
+        <div class="draggable-control" id="test"
+          style="display:flex;flex-direction: column;justify-content: center;align-items: flex-start; position: fixed; bottom: 16px; right: 16px;max-height: 211px;">
+          <div class="controlPanel" style="display: flex; flex-direction: column;align-items: center;">
+            <h2 style="padding-bottom:0.5rem;">Fault Panel</h2>
+            <div
+              style="display:flex;flex-direction: column;justify-content: space-evenly;align-items: stretch;padding-bottom:0.5rem;gap: 0.2rem">
+              <div style="display: flex;flex-direction: row;justify-content: center; gap: 0.2rem;">
+                <div style="display:flex;flex-wrap:wrap;align-items: center;justify-content: center;">
+                  <button id="tab-3Ph" data-value="3 Φ" class="tab-button active">3 Φ</button>
+                  <button id="tab-1Ph" data-value="1 Φ-Gr" class="tab-button">A Gr</button>
+                  <button id="tab-2PhGr" data-value="2 Φ-Gr" class="tab-button">AB-Gr</button>
+                  <button id="tab-2Ph" data-value="2 Φ" class="tab-button">AB</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button id="toggleZMode" class="toggle-btn" hx-get="#" hx-trigger="click" hx-target="body" hx-swap="none"
+                data-faulttype="">Open Z Mode</button>
+            </div>
+          </div>
+        </div>
+        <div id="table-control-R-X-Parameters" class="draggable-control"
+          style="display:flex;flex-direction: column;justify-content: center;align-items: flex-start; position: fixed; bottom: 16px; right: 16px;width: 300px;">
+          <div class="controlPanel">
+            <div class="control-header">
+              <span>⚡ Impedance Parameters</span>
+              <button id="closePanel" class="close-btn">✖</button>
+            </div>
+            <div>
+              <table class="control-table">
+                <thead>
+                  <tr>
+                    <th class="label-cell">R/X</th>
+                    <th class="slider-cell">R</th>
+                    <th class="slider-cell">X</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="label-cell">Z<sub>L</sub>:</td>
+                    <td class="slider-cell">
+                      <input id="R" class="forminput_2_R" type="range" min="0" max="10" step="0.1" value="1"
+                        oninput="Rout.value=this.value">
+                      <output id="Rout">1</output>
+                    </td>
+                    <td class="slider-cell">
+                      <input id="X" class="forminput_3_X" type="range" min="0" max="50" step="0.5" value="10"
+                        oninput="Xout.value=this.value">
+                      <output id="Xout">10</output>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="label-cell">Z<sub>L0</sub>:</td>
+                    <td class="slider-cell">
+                      <input id="R0" class="forminput_2_R0" type="range" min="0" max="10" step="0.1" value="1"
+                        oninput="R0out.value=this.value">
+                      <output id="R0out">1</output>
+                    </td>
+                    <td class="slider-cell">
+                      <input id="X0" class="forminput_3_X0" type="range" min="0" max="50" step="0.5" value="10"
+                        oninput="X0out.value=this.value">
+                      <output id="X0out">10</output>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="label-cell">Z<sub>S</sub>:</td>
+                    <td class="slider-cell">
+                      <input id="Rs" class="forminput_2_Rs" type="range" min="0" max="10" step="0.1" value="1"
+                        oninput="Rsout.value=this.value">
+                      <output id="Rsout">1</output>
+                    </td>
+                    <td class="slider-cell">
+                      <input id="Xs" class="forminput_3_Xs" type="range" min="0" max="50" step="0.5" value="10"
+                        oninput="Xsout.value=this.value">
+                      <output id="Xsout">10</output>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="label-cell">Z<sub>S0</sub>:</td>
+                    <td class="slider-cell">
+                      <input id="Rs0" class="forminput_2_Rs0" type="range" min="0" max="10" step="0.1" value="1"
+                        oninput="Rs0out.value=this.value">
+                      <output id="Rs0out">1</output>
+                    </td>
+                    <td class="slider-cell">
+                      <input id="Xs0" class="forminput_3_Xs0" type="range" min="0" max="50" step="0.5" value="10"
+                        oninput="Xs0out.value=this.value">
+                      <output id="Xs0out">10</output>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="label-cell">R<sub>f</sub>:</td>
+                    <td colspan="2" class="slider-cell">
+                      <input id="Rf" class="forminput_2_Rf" type="range" min="0" max="10" step="0.1" value="0"
+                        oninput="Rfout.value=this.value">
+                      <output id="Rfout">0</output>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="label-cell">R<sub>l</sub>:</td>
+                    <td colspan="2" class="slider-cell">
+                      <input id="Rload" class="form12" type="range" min="0" max="150" step="10" value="100"
+                        oninput="Rloadout.value=this.value">
+                      <output id="Rloadout">100</output>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <fieldset id="settings" style="display:none;">
+          <legend>Settings</legend>
+          <h2>Input Parameters</h2>
+          <label>PT Ratio: <input id="ptRatio" type="number" value="2000"></label>
+          <label>CT Ratio: <input id="ctRatio" type="number" value="600"></label>
+          <label>Z1MAG: <input id="z1Mag" type="number" value="10"></label>
+          <label>Z1ANG: <input id="z1Ang" type="number" value="85"></label>
+          <label>Z2MAG: <input id="z2Mag" type="number" value="20"></label>
+          <label>Z2ANG: <input id="z2Ang" type="number" value="85"></label>
+          <label>PLAF: <input id="plaf" type="number" value="30"></label>
+          <label>NLAF: <input id="nlaf" type="number" value="-30"></label>
+          <label>PLAR: <input id="plar" type="number" value="150"></label>
+          <label>NLAR: <input id="nlar" type="number" value="210"></label>
+          <button id="updateButton">Update Graph</button>
+        </fieldset>
+        <fieldset id="data" class="form-container" aria-label="Parameter control for adjusting fault impedance">
+          <legend>Variables:</legend>
+          <form oninput="x.value = Number(Vn.value)" class="form-label forminput_1">
+            <abbr title="Vn is nominal Phase to Ground Voltage">Vn=</abbr>
+            <div><input id="Vn" type="range" min="0" max="220" step="1" value="110" /></div>
+            <div><output id="Vnout" name="x" for="Vn"> 110 </output></div>
+          </form>
+          <form oninput="x.value = Number(ϵ.value)" class="form-label forminput_ϵ">
+            <abbr title="Source Voltage Shift">ϵ=</abbr>
+            <div><input id="ϵ" type="range" min="-180" max="180" step="1" value="0" /></div>
+            <div><output id="sVSnout" name="x" for="ϵ"> 0 </output></div>
+          </form>
+          <form oninput="x.value = Number(distanceToFault.value * 1)" class="forminput_distanceToFault">
+            <abbr title="Distance to fault in %">k=</abbr>
+            <div><input id="distanceToFault" type="range" min="0" max="100" step="1" value="100" /></div>
+            <div><output id="distanceToFaultout" name="x" for="distanceToFault"> 100 </output></div>
+          </form>
+          <!-- <form oninput="x.value = Number(R.value * 1)" class="forminput_2_R">
+            <abbr title="line resistance">R=</abbr>
+            <div><input id="R" type="range" min="0" max="10" step="0.1" value="1" /></div>
+            <div><output id="Rout" name="x" for="R"> 1 </output></div>
+          </form>
+          <form oninput="x.value = Number(X.value)" class="forminput_3_X">
+            <abbr title="line reactance"> X=</abbr>
+            <div><input id="X" type="range" min="0" max="50" step="0.5" value="10" /></div>
+            <div><output id="Xout" name="x" for="X"> 10 </output></div>
+          </form>
+          <form oninput="x.value = Number(R0.value * 1)" class="forminput_2_R0">
+            <abbr title="line resistance zero sequence component">R0=</abbr>
+            <div><input id="R0" type="range" min="0" max="10" step="0.1" value="1" /></div>
+            <div><output id="R0out" name="x" for="R0"> 1 </output></div>
+          </form>
+          <form oninput="x.value = Number(X0.value)" class="forminput_3_X0">
+            <abbr title="line reactance zero sequence component"> X0=</abbr>
+            <div><input id="X0" type="range" min="0" max="50" step="0.5" value="10" /></div>
+            <div><output id="X0out" name="x" for="X0"> 10 </output></div>
+          </form>
+          <form oninput="x.value = Number(Rs.value)" class="forminput_2_Rs">
+            <abbr title="Source resistance">Rs=</abbr>
+            <div><input id="Rs" type="range" min="0" max="10" step="0.1" value="1" /></div>
+            <div><output id="Rsout" name="x" for="Rs"> 1 </output></div>
+          </form>
+          <form oninput="x.value = Number(Xs.value)" class="forminput_3_Xs">
+            <abbr title="Source reactance"> Xs=</abbr>
+            <div><input id="Xs" type="range" min="0" max="50" step="0.5" value="10" /></div>
+            <div><output id="Xsout" name="x" for="X"> 10 </output></div>
+          </form>
+          <form oninput="x.value = Number(Rs0.value * 1)" class="forminput_2_Rs0">
+            <abbr title="Source resistance zero sequence component">Rs0=</abbr>
+            <div><input id="Rs0" type="range" min="0" max="10" step="0.1" value="1" /></div>
+            <div><output id="Rs0out" name="x" for="Rs0"> 1 </output></div>
+          </form>
+          <form oninput="x.value = Number(Xs0.value)" class="forminput_3_Xs0">
+            <abbr title="Source reactance zero sequence component"> Xs0=</abbr>
+            <div><input id="Xs0" type="range" min="0" max="50" step="0.5" value="10" /></div>
+            <div><output id="Xs0out" name="x" for="Xs0"> 10 </output></div>
+          </form>
+          <form oninput="x.value = Number(Rf.value * 1)" class="forminput_2_Rf">
+            <abbr title="fault resistance">Rf=</abbr>
+            <div><input id="Rf" type="range" min="0" max="10" step="0.1" value="0" /></div>
+            <div><output id="Rfout" name="x" for="Rf"> 0 </output></div>
+          </form> -->
+          <form oninput="x.value = Number(PointOnWave.value)" class="form9">
+            <abbr title="angle at which the fault occirs, refered to as point on wave">POW=</abbr>
+            <div><input id="PointOnWave" type="range" min="0" max="360" step="1" value="174" /></div>
+            <div><output id="PointOnWaveaout" name="x" for="PointOnWave"> 174 </output></div>
+          </form>
+          <!-- <form oninput="x.value = parseInt(divider.value)" class="form10">
+            <abbr title="Samples per cycle"> s/c </abbr>
+            <div><input id="divider" type="range" min="1" max="5" step="1" value="5" /></div>
+            <div><output id="dividerout" name="x" for="divider"> 5 </output></div>
+          </form>
+          <form oninput="x.value = parseInt(sampleadd.value)" class="form11">
+            <abbr> Samples:</abbr>
+            <div><input id="sampleadd" type="range" min="0" max="700" step="1" value="0" /></div>
+            <div><output id="sampleaddout" name="x" for="sampleadd"> 0 </output></div>
+          </form> -->
+          <!-- <form oninput="x.value = Number(Rload.value)" class="form12">
+            <abbr title="Resistive load representing values prior to fault"> Rload=</abbr>
+            <div><input id="Rload" type="range" min="0.00" max="150.00" step="10" value="100" /></div>
+            <div><output id="amplifierout" name="x" for="Rload"> 100 </output></div>
+          </form> -->
+        </fieldset>
+      </div>
+    </section>
+  </main>
+  <script>
+    const SVG1Dimensions = document.getElementById('svg1');
+    const setHeightSVG1 = SVG1Dimensions.getBoundingClientRect().height;
+    let svgContainer1 = d3.select("#svg1");
+    const svgContainer2 = d3.select("#svg2");
+    const svgContainer3 = d3.select("#svg3");
+    const controlContainer = document.getElementById("table-control");
+    const toggleHeaderButton = document.getElementById("toggle-header-button");
+    document.addEventListener("DOMContentLoaded", () => {
+      const closeTableButton = document.getElementById("close-table");
+      const closeInputTableButton = document.getElementById("close-InputTable");
+      const inputFields = document.getElementById("table-input");
+
+      let isDraggingHeader = false;
+      let isDraggingInput = false;
+      let isDraggingControl = false;
+      let offsetX = 0, offsetY = 0;
+
+      const controller = new AbortController();
+      const { signal } = controller;
+
+      // Optimized event delegation
+      document.querySelector('.controlPanel').addEventListener(
+        'click',
+        (event) => {
+          if (event.target.matches('button')) {
+            console.log(`Button clicked: ${event.target.innerText}`);
+            event.target.classList.toggle('active');
+          }
+        },
+        { signal }
+      );
+
+      // Cleanup event listeners on page unload
+      window.addEventListener('beforeunload', () => controller.abort());
+
+
+      // Mousemove Event
+      document.addEventListener("mousemove", (e) => {
+        if (isDraggingHeader) {
+          // tableHeader.style.left = `${e.clientX - offsetX} px`;
+          // tableHeader.style.top = `${e.clientY - offsetY} px`;
+        }
+        if (isDraggingInput) {
+          inputFields.style.left = `${e.clientX - offsetX} px`;
+          inputFields.style.top = `${e.clientY - offsetY} px`;
+        }
+      });
+
+      // Mouseup Event
+      document.addEventListener("mouseup", () => {
+        isDraggingHeader = false;
+        isDraggingInput = false;
+        isDraggingControl = false;
+        document.body.style.cursor = "";
+      });
+
+      let isDraggingTabs = false,
+        tabsOffsetX = 0,
+        tabsOffsetY = 0;
+
+      document.addEventListener("mouseup", () => {
+        isDraggingTabs = false;
+        document.body.style.cursor = "";
+      });
+
+
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const mosaicContainer = document.getElementById("mosaic-container");
+      const toggleLayoutButton = document.getElementById("toggle-layout");
+
+      const svgAll = [
+        { svg: "svgMainVisual", layout: "custom-layout" },
+        { svg: "svgSequenceImpedance", layout: "custom-layoutTopMiddle" },
+        { svg: "svgApparentPower", layout: "custom-layoutTopRight" },
+        { svg: "svgSequenceCurrentAndVoltage", layout: "custom-layoutMiddleLeft" },
+        { svg: "svgZaids", layout: "custom-layoutMiddleMiddle" },
+        { svg: "svgAdmittance", layout: "custom-layoutMiddleRight" },
+        { svg: "svgPhasePhaseVoltage", layout: "custom-layoutBottomLeft" },
+        { svg: "svgPhasePhaseCurrent", layout: "custom-layoutBottomMiddle" },
+        { svg: "svgPhasePhaseImpedance", layout: "custom-layoutBottomRight" },
+      ]
+
+      // Add default layout initially
+      mosaicContainer.classList.add("default-layout");
+
+      // Attach a dblclick listener to each SVG
+      svgAll.forEach((svgElement, layout) => {
+
+        // let thisSvgElement = document.getElementById(svgElement.svg);
+        // const previousSibling = thisSvgElement.previousElementSibling;
+        const el = document.getElementById(svgElement.svg);
+        if (!el) return;                   // guard
+        const prev = el.previousElementSibling;
+        if (!prev) return;                 // guard
+        prev.classList.add(layout);
+
+        el.addEventListener("dblclick", () => {
+          if (mosaicContainer.classList.contains("default-layout")) {
+            // Switch to custom layout
+            mosaicContainer.classList.remove("default-layout");
+            mosaicContainer.classList.add(svgElement.layout);
+
+
+            if (previousSibling) {
+              previousSibling.childNodes[0].style.fontSize = "2rem";
+              previousSibling.style.marginBottom = "125px";
+            }
+
+            // Scale only the SVG that was double-clicked
+            scaleSvg(document.getElementById(svgElement.svg), 2);
+          } else {
+            // Switch back to default layout
+            mosaicContainer.classList.remove(svgElement.layout);
+            mosaicContainer.classList.add("default-layout");
+            if (previousSibling) {
+              previousSibling.childNodes[0].style.fontSize = "14px";
+              previousSibling.style.marginBottom = "4px";
+            }
+            // Scale only the SVG that was double-clicked
+            scaleSvg(document.getElementById(svgElement.svg), 1);
+          }
+        });
+      });
+
+
+      // Function to apply CSS scaling to the SVG
+      function scaleSvg(svgElement, scaleFactor) {
+        svgElement.style.transform = `scale(${scaleFactor})`;
+        svgElement.style.transformOrigin = "center"; // Ensure scaling is centered
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Use optional chaining in case the table is missing.
+      const table = document.querySelector('.control-table');
+      table?.querySelectorAll('tbody tr').forEach(row => {
+        row.addEventListener('click', () => {
+          // Toggle a "selected" class on the row using classList.toggle
+          row.classList.toggle('selected');
+          console.log(`Row ${row.rowIndex} selected: ${row.classList.contains('selected')}`);
+        });
+      });
+    });
+
+
+    const colors = { A: 'red', B: 'gold', C: 'blue', 0: "darkgrey", 1: "limegreen", 2: "magenta", s: "white", n: "cyan" };
+
+
+    // Define the cycling sequences for each radio button
+    const cycles = {
+      "1Ph": ["A Gr", "B Gr", "C Gr"],
+      "2PhGr": ["AB-Gr", "BC-Gr", "CA-Gr"],
+      "2Ph": ["AB", "BC", "CA"]
+    };
+
+    // Function to generate the value based on label and radioId
+    function generateValue(label, radioId) {
+      switch (radioId) {
+        case "1Ph":
+          return `${label.split(' ')[0]} Φ-Gr`; // e.g., "B Gr" -> "B Φ-Gr"
+        case "2PhGr":
+          return `${label.split('-')[0]}-Gr`;    // e.g., "BC-Gr" -> "BC-Gr"
+        case "2Ph":
+          return label;                           // e.g., "BC" -> "BC"
+        default:
+          return label;
+      }
+    }
+
+    document.querySelectorAll('#test .tab-button').forEach(button => {
+      button.addEventListener('click', function () {
+        // Determine a key from the button id (e.g. "tab-1Ph" becomes "1Ph")
+        const cycleKey = this.id.replace('tab-', '');
+        if (cycles[cycleKey]) {
+          // Cycle through the labels if applicable
+          let currentText = this.textContent;
+          let cycleArray = cycles[cycleKey];
+          let currentIndex = cycleArray.indexOf(currentText);
+          if (currentIndex === -1) currentIndex = 0;
+          let nextIndex = (currentIndex + 1) % cycleArray.length;
+          this.textContent = cycleArray[nextIndex];
+          this.setAttribute('data-value', generateValue(cycleArray[nextIndex], cycleKey));
+        }
+        // Remove the active class from all buttons and add it to the clicked one
+        document.querySelectorAll('#test .tab-button').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        // Update the fault type based on the active button
+        faultType = updateOutput();
+      });
+    });
+
+    class Complex {
+      constructor(real, imag) {
+        this.real = real;
+        this.imag = imag;
+      }
+      add(other) {
+        return new Complex(this.real + other.real, this.imag + other.imag);
+      }
+      subtract(other) {
+        return new Complex(this.real - other.real, this.imag - other.imag);
+      }
+      multiply(other) {
+        const real = this.real * other.real - this.imag * other.imag;
+        const imag = this.real * other.imag + this.imag * other.real;
+        return new Complex(real, imag);
+      }
+      divide(other) {
+        const denominator = other.real * other.real + other.imag * other.imag;
+        const real = (this.real * other.real + this.imag * other.imag) / denominator;
+        const imag = (this.imag * other.real - this.real * other.imag) / denominator;
+        return new Complex(real, imag);
+      }
+      abs() {
+        return Math.sqrt(this.real * this.real + this.imag * this.imag);
+      }
+      arg() {
+        return Math.atan2(this.imag, this.real);
+      }
+      static expj(x) {
+        return new Complex(Math.cos(x), Math.sin(x));
+
+      }
+      toString() {
+        return `${this.real.toFixed(2)} + ${this.imag.toFixed(2)}j`;
+      }
+    }
+    var faultType = '3Ph';
+    var faultedPhase = 'ABC';
+    var phase = { A: 'A', B: 'B', C: 'C' };
+
+    function updateOutput() {
+      const activeButton = document.querySelector('#test .tab-button.active');
+      let labelText = activeButton ? activeButton.textContent : '';
+      // Determine fault type and phase from label text
+      switch (true) {
+        case (labelText.includes('3 Φ')):
+          faultType = '3Ph';
+          faultedPhase = 'ABC';
+          break;
+        case (labelText.includes('Gr') && labelText.split(' ').length === 2):
+          faultType = '1Ph';
+          faultedPhase = labelText.charAt(0); // A, B, or C
+          break;
+        case (labelText.includes('-Gr')):
+          faultType = '2PhGr';
+          faultedPhase = labelText.split('-')[0]; // AB, BC, or CA
+          break;
+        case (['AB', 'BC', 'CA'].includes(labelText)):
+          faultType = '2Ph';
+          faultedPhase = labelText;
+          break;
+        default:
+          faultType = '3Ph';
+          faultedPhase = 'ABC';
+      }
+
+      return faultType;
+    }
+
+    faultType = updateOutput();
+
+    var f = 60;
+    var ω = 2 * Math.PI * f / 1000;
+
+    var ϵs = ϵ.value * 1 * Math.PI / 180;
+    var nominalVoltageSource = Vn.value * 1;
+    var VsourcePhasor = new Complex(nominalVoltageSource, 0).multiply(Complex.expj(ϵs)); // Voltage amplitude
+    var V = VsourcePhasor;
+
+    var k = distanceToFault.value * 1 / 100;
+
+    var rAdd = 0, xAdd = 0;
+    if (faultType === '1Ph') {
+      rAdd = ((R0.value * 1 * k - R.value * 1 * k) / 3) + (Rf.value * 1 * k);
+      xAdd = ((X0.value * 1 * k - X.value * 1 * k) / 3);
+    } else if (faultType === '2PhGr') {
+      rAdd = ((R0.value * 1 * k - R.value * 1 * k) / 3) + (Rf.value * 1 * k);
+      xAdd = ((X0.value * 1 * k - X.value * 1 * k) / 3);
+    } else if (faultType === '2Ph') {
+      rAdd = 0;
+      xAdd = 0;
+    } else if (faultType === '3Ph') {
+      rAdd = 0;
+      xAdd = 0;
+    }
+
+    Zl_complex = new Complex(R.value * 1 * k + rAdd, X.value * 1 * k + xAdd);
+
+    var Zs_complex_load = new Complex(
+      Rs.value * 1,
+      Xs.value * 1
+    );
+    var Zl_complex_total = new Complex(R.value * 1, X.value * 1);
+    var Zl = Zl_complex.abs();
+    var rsAdd = 0, xsAdd = 0;
+    if (faultType === '1Ph') {
+      rsAdd = ((Rs0.value * 1 - Rs.value * 1) / 3);
+
+      xsAdd = ((Xs0.value * 1 - Xs.value * 1) / 3);
+    } else if (faultType === '2PhGr') {
+      rsAdd = ((Rs0.value * 1 - Rs.value * 1) / 3);
+      xsAdd = ((Xs0.value * 1 - Xs.value * 1) / 3);
+    } else if (faultType === '2Ph') {
+      rsAdd = 0;
+      xsAdd = 0;
+    } else if (faultType === '3Ph') {
+      rsAdd = 0;
+      xsAdd = 0;
+    }
+
+    Zs_complex = new Complex(Rs.value * 1 + rsAdd, Xs.value * 1 + xsAdd);
+
+    var Zs = Zs_complex.abs();
+    var load = Rload.value * 1;
+    var Ztotal_underLoad = Zs_complex_load.add(Zl_complex_total).add(new Complex(load, 0)).abs();
+    var Ztotal_underFault = Zs_complex.add(Zl_complex).abs();
+    var Ztotal_underLoad_complex = Zs_complex_load.add(Zl_complex_total).add(new Complex(load, 0));
+    var Ztotal_underFault_complex = Zs_complex.add(Zl_complex);
+    var θ = Math.atan2(Ztotal_underFault_complex.imag, Ztotal_underFault_complex.real);
+    var θs = Math.atan2(Zs_complex.imag, Zs_complex.real);
+    var θ_preFault = Math.atan2(Ztotal_underLoad_complex.imag, Ztotal_underLoad_complex.real);
+    var ZlComplex = Complex.expj(θ).multiply(new Complex(Zl, 0));
+    var ZsComplex = Complex.expj(θs).multiply(new Complex(Zs, 0));
+
+    var Z = {
+      faultType: faultType,
+      faultedPhase: faultedPhase,
+      ZlModule: Zl,
+      Zl: { r: R.value * 1, x: X.value * 1 },
+      ZsModule: Zs,
+      Zs: { r: Rs.value * 1, x: Xs.value * 1 },
+      Ztotal_underLoadModule: Ztotal_underLoad,
+      Ztotal_underFaultModule: Ztotal_underFault,
+      Ztotal_underFault_imag: Ztotal_underFault_complex.imag,
+      Ztotal_underFault_real: Ztotal_underFault_complex.real
+    };
+    var XoverR_ratio = ((X.value * 1) / (R.value * 1));
+
+    var div = 5;
+    var addsample = 0;
+    var numsample = 300;
+    var duration = 0;
+    var temp = 0;
+
+    var POW = (PointOnWave.value * 1 * Math.PI) / 180;
+    var phaseShift = { va: POW, vb: POW - (2 * Math.PI) / 3, vc: POW + (2 * Math.PI) / 3, ia: POW, ib: POW - (2 * Math.PI) / 3, ic: POW + (2 * Math.PI) / 3 };
+
+    var Iac_rms = V.divide(Zs_complex.add(Zl_complex).add(new Complex(load, 0))).abs();
+    var I_peak_underLoad = V.divide(Zs_complex.add(Zl_complex_total).add(new Complex(load, 0))).abs();
+    var I_peak_underFault = V.divide(Zs_complex.add(Zl_complex)).abs();
+    var I_peak_underLoad_complex = V.divide(Zs_complex.add(Zl_complex_total).add(new Complex(load, 0)));
+    var I_peak_underFault_complex = V.divide(Zs_complex.add(Zl_complex));
+
+    var V_peak_underLoad = V.subtract(Zs_complex.multiply(V.divide(Zs_complex.add(Zl_complex_total).add(new Complex(load, 0))))).abs();
+    var V_peak_underLoad_complex = V.subtract(Zs_complex.multiply(V.divide(Zs_complex.add(Zl_complex_total).add(new Complex(load, 0)))));
+
+    var τ = Z.Ztotal_underFault_imag / (ω * Z.Ztotal_underFault_real);
+
+    var width, height, plotWidth, plotHeight, margin;
+    var MAX_yScale_I = 0;
+    var MAX_yScale_V = 0;
+    var MAX_yScale_IO = 0;
+    plotWidth = SVG1Dimensions.getBoundingClientRect().width;
+    plotHeight = SVG1Dimensions.getBoundingClientRect().height;
+    d3.select("#Rout").text((R.value * 1).toFixed(1));
+    d3.select("#Xout").text((X.value * 1).toFixed(1));
+    d3.select("#Rsout").text((Rs.value * 1).toFixed(1));
+    d3.select("#Xsout").text((Xs.value * 1).toFixed(1));
+    d3.select('#sVSnout').text((ϵ.value * 1));
+
+    var xAxis, xScale, yAxis, yAxisI, yAxisV, yScale, yScaleI, yScaleV, yAxisRight, yScaleRight;
+    var lineFunc1 = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var lineFunc2 = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var lineFunc3 = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var lineFunc4 = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var lineFunc5 = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var lineFunc6 = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var lineFunc4Right = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScaleRight(d[1]); })
+    var lineFunc5Right = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScaleRight(d[1]); })
+    var lineFunc6Right = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScaleRight(d[1]); })
+    var lineFuncI_O = d3.line().curve(d3.curveLinear).x(function (d) { return xScale(d[0]); }).y(function (d) { return yScale(d[1]); })
+    var thickness = 2;
+
+
+    document.getElementById("toggle-header-button").addEventListener("click", () => {
+      const scrollWrapper = document.getElementById("scrollWrapper");
+      const svg1 = document.getElementById("svg1");
+      const svg2 = document.getElementById("svg2");
+      const svg3 = document.getElementById("svg3");
+      const mergedContainer = document.getElementById("merged-svg-container");
+      const toggleZModeBtn = document.getElementById("toggleZMode");
+
+      if (window.getComputedStyle(scrollWrapper).display === "none" || mergedContainer.style.display === "block") {
+        // Show scrollWrapper and hide others
+        scrollWrapper.style.display = "block";
+        scrollWrapper.style.height = 2 * setHeightSVG1 + "px";
+        svg1.style.height = setHeightSVG1 + "px";
+        svg2.style.display = "none";
+        svg3.style.display = "none";
+        mergedContainer.style.display = "none";
+        console.log('Make scrollWrapper appear');
+        toggleZModeBtn.textContent = "Open Z Mode";
+        toggleZModeBtn.classList.remove("active");
+
+      } else {
+        // Return to default: hide scrollWrapper and show svg2, svg3
+        scrollWrapper.style.display = "none";
+        svg2.style.display = "block";
+        svg3.style.display = "block";
+        mergedContainer.style.display = "none";
+        console.log('go back to default');
+
+      }
+    });
+
+    const svgWidth = 250;
+    var visualizationElement = d3.select("#cell-1");
+    var svgSequenceImpedance = d3.select('#svgSequenceImpedance');
+    var svgSequenceCurrentAndVoltage = d3.select('#svgSequenceCurrentAndVoltage');
+    var svgZaids = d3.select('#svgZaids');
+    var svgPhasePhaseVoltage = d3.select('#svgPhasePhaseVoltage');
+    var svgPhasePhaseCurrent = d3.select('#svgPhasePhaseCurrent');
+    var svgPhasePhaseImpedance = d3.select('#svgPhasePhaseImpedance');
+    var svgApparentPower = d3.select("#apparentPower");
+    var svgAdmittance = d3.select("#admittance");
+
+    var svg_apparentPower = svgApparentPower
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgApparentPower");
+
+    var svg_admittance = svgAdmittance
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgAdmittance");
+
+    var svg_SequenceImpedance = svgSequenceImpedance
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgSequenceImpedance");
+
+    var svg_SequenceCurrentAndVoltage = svgSequenceCurrentAndVoltage
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgSequenceCurrentAndVoltage");
+
+    var svg_PhasePhaseVoltage = svgPhasePhaseVoltage
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgPhasePhaseVoltage");
+
+    var svg_PhasePhaseCurrent = svgPhasePhaseCurrent
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgPhasePhaseCurrent");
+
+    var svg_PhasePhaseImpedance = svgPhasePhaseImpedance
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgPhasePhaseImpedance");
+
+    var svg_Zaids = svgZaids
+      .attr("width", svgWidth)
+      .attr("height", svgWidth)
+      .attr("id", "svgZaids");
+
+    const a = { x: -0.5, y: +0.8660254037844386 };
+    const a2 = { x: -0.5, y: -0.8660254037844386 };
+
+    // Create vector data
+    var vectorsData = {
+      VA: { x: 2, y: 0 },
+      VAB: {
+        get x() {
+          return vectorsData.VB.x - vectorsData.VA.x;
+        },
+        get y() {
+          return vectorsData.VB.y - vectorsData.VA.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      VB: { x: -1, y: +Math.sqrt(3) },
+      VBC: {
+        get x() {
+          return vectorsData.VC.x - vectorsData.VB.x;
+        },
+        get y() {
+          return vectorsData.VC.y - vectorsData.VB.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      VC: { x: -1, y: -Math.sqrt(3) },
+      VCA: {
+        get x() {
+          return vectorsData.VA.x - vectorsData.VC.x;
+        },
+        get y() {
+          return vectorsData.VA.y - vectorsData.VC.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      IA: { x: 1, y: 0 },
+      IAB: {
+        get x() {
+          return vectorsData.IB.x - vectorsData.IA.x;
+        },
+        get y() {
+          return vectorsData.IB.y - vectorsData.IA.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      IB: { x: -0.5, y: +0.8660254037844386 },
+      IBC: {
+        get x() {
+          return vectorsData.IC.x - vectorsData.IB.x;
+        },
+        get y() {
+          return vectorsData.IC.y - vectorsData.IB.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      IC: { x: -0.5, y: -0.8660254037844386 },
+      ICA: {
+        get x() {
+          return vectorsData.IA.x - vectorsData.IC.x;
+        },
+        get y() {
+          return vectorsData.IA.y - vectorsData.IC.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      SA: {
+        get x() {
+          return (vectorsData.VA.x * vectorsData.IA.x - vectorsData.VA.y * vectorsData.IA.y);
+        },
+        get y() {
+          return (vectorsData.VA.y * vectorsData.IA.x + vectorsData.VA.x * vectorsData.IA.y);
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      SB: {
+        get x() {
+          return (vectorsData.VB.x * vectorsData.IB.x - vectorsData.VB.y * vectorsData.IB.y);
+        },
+        get y() {
+          return (vectorsData.VB.y * vectorsData.IB.x + vectorsData.VB.x * vectorsData.IB.y);
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      SC: {
+        get x() {
+          return (vectorsData.VC.x * vectorsData.IC.x - vectorsData.VC.y * vectorsData.IC.y);
+        },
+        get y() {
+          return (vectorsData.VC.y * vectorsData.IC.x + vectorsData.VC.x * vectorsData.IC.y);
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      S0: {
+        get x() {
+          return (vectorsData.SA.x + vectorsData.SB.x + vectorsData.SC.x) / 3;
+        },
+        get y() {
+          return (vectorsData.SA.y + vectorsData.SB.y + vectorsData.SC.y) / 3;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      S1: {
+        get x() {
+          // alpha^2 * SB
+          const SBx_a2 = vectorsData.SB.x * a2.x - vectorsData.SB.y * a2.y;
+          const SBy_a2 = vectorsData.SB.x * a2.y + vectorsData.SB.y * a2.x;
+          // alpha * SC
+          const SCx_a = vectorsData.SC.x * a.x - vectorsData.SC.y * a.y;
+          const SCy_a = vectorsData.SC.x * a.y + vectorsData.SC.y * a.x;
+
+          return (vectorsData.SA.x + SBx_a2 + SCx_a) / 3;
+        },
+        get y() {
+          // alpha^2 * SB
+          const SBx_a2 = vectorsData.SB.x * a2.x - vectorsData.SB.y * a2.y;
+          const SBy_a2 = vectorsData.SB.x * a2.y + vectorsData.SB.y * a2.x;
+          // alpha * SC
+          const SCx_a = vectorsData.SC.x * a.x - vectorsData.SC.y * a.y;
+          const SCy_a = vectorsData.SC.x * a.y + vectorsData.SC.y * a.x;
+
+          return (vectorsData.SA.y + SBy_a2 + SCy_a) / 3;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+
+      // Negative-sequence power
+      S2: {
+        get x() {
+          // alpha * SB
+          const SBx_a = vectorsData.SB.x * a.x - vectorsData.SB.y * a.y;
+          const SBy_a = vectorsData.SB.x * a.y + vectorsData.SB.y * a.x;
+          // alpha^2 * SC
+          const SCx_a2 = vectorsData.SC.x * a2.x - vectorsData.SC.y * a2.y;
+          const SCy_a2 = vectorsData.SC.x * a2.y + vectorsData.SC.y * a2.x;
+
+          return (vectorsData.SA.x + SBx_a + SCx_a2) / 3;
+        },
+        get y() {
+          // alpha * SB
+          const SBx_a = vectorsData.SB.x * a.x - vectorsData.SB.y * a.y;
+          const SBy_a = vectorsData.SB.x * a.y + vectorsData.SB.y * a.x;
+          // alpha^2 * SC
+          const SCx_a2 = vectorsData.SC.x * a2.x - vectorsData.SC.y * a2.y;
+          const SCy_a2 = vectorsData.SC.x * a2.y + vectorsData.SC.y * a2.x;
+
+          return (vectorsData.SA.y + SBy_a + SCy_a2) / 3;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      ZA: {
+        get x() {
+          const Nx = vectorsData.VA.x;
+          const Ny = vectorsData.VA.y;
+          const Dx = vectorsData.IA.x;
+          const Dy = vectorsData.IA.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Nx * Dx + Ny * Dy) / denom; // Real part
+        },
+        get y() {
+          const Nx = vectorsData.VA.x;
+          const Ny = vectorsData.VA.y;
+          const Dx = vectorsData.IA.x;
+          const Dy = vectorsData.IA.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Ny * Dx - Nx * Dy) / denom; // Imag part
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      ZB: {
+        get x() {
+          const Nx = vectorsData.VB.x;
+          const Ny = vectorsData.VB.y;
+          const Dx = vectorsData.IB.x;
+          const Dy = vectorsData.IB.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Nx * Dx + Ny * Dy) / denom; // Real part
+        },
+        get y() {
+          const Nx = vectorsData.VB.x;
+          const Ny = vectorsData.VB.y;
+          const Dx = vectorsData.IB.x;
+          const Dy = vectorsData.IB.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Ny * Dx - Nx * Dy) / denom; // Imag part
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      ZC: {
+        get x() {
+          const Nx = vectorsData.VC.x;
+          const Ny = vectorsData.VC.y;
+          const Dx = vectorsData.IC.x;
+          const Dy = vectorsData.IC.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Nx * Dx + Ny * Dy) / denom; // Real part
+        },
+        get y() {
+          const Nx = vectorsData.VC.x;
+          const Ny = vectorsData.VC.y;
+          const Dx = vectorsData.IC.x;
+          const Dy = vectorsData.IC.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Ny * Dx - Nx * Dy) / denom; // Imag part
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+      I0: {
+        get x() {
+          return (vectorsData.IA.x + vectorsData.IB.x + vectorsData.IC.x) / 3;
+        },
+        get y() {
+          return (vectorsData.IA.y + vectorsData.IB.y + vectorsData.IC.y) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      I1: {
+        get x() {
+          // alpha^2 * IB
+          const IBx_a2 = vectorsData.IB.x * a2.x - vectorsData.IB.y * a2.y;
+          const IBy_a2 = vectorsData.IB.x * a2.y + vectorsData.IB.y * a2.x;
+          // alpha * IC
+          const ICx_a = vectorsData.IC.x * a.x - vectorsData.IC.y * a.y;
+          const ICy_a = vectorsData.IC.x * a.y + vectorsData.IC.y * a.x;
+
+          return (vectorsData.IA.x + IBx_a2 + ICx_a) / 3;
+        },
+        get y() {
+          // alpha^2 * IB
+          const IBx_a2 = vectorsData.IB.x * a2.x - vectorsData.IB.y * a2.y;
+          const IBy_a2 = vectorsData.IB.x * a2.y + vectorsData.IB.y * a2.x;
+          // alpha * IC
+          const ICx_a = vectorsData.IC.x * a.x - vectorsData.IC.y * a.y;
+          const ICy_a = vectorsData.IC.x * a.y + vectorsData.IC.y * a.x;
+
+          return (vectorsData.IA.y + IBy_a2 + ICy_a) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      I2: {
+        get x() {
+          // alpha^2 * IB
+          const IBx_a = vectorsData.IB.x * a.x - vectorsData.IB.y * a.y;
+          const IBy_a = vectorsData.IB.x * a.y + vectorsData.IB.y * a.x;
+          // alpha * IC
+          const ICx_a2 = vectorsData.IC.x * a2.x - vectorsData.IC.y * a2.y;
+          const ICy_a2 = vectorsData.IC.x * a2.y + vectorsData.IC.y * a2.x;
+
+          return (vectorsData.IA.x + IBx_a + ICx_a2) / 3;
+        },
+        get y() {
+          // alpha^2 * IB
+          const IBx_a = vectorsData.IB.x * a.x - vectorsData.IB.y * a.y;
+          const IBy_a = vectorsData.IB.x * a.y + vectorsData.IB.y * a.x;
+          // alpha * IC
+          const ICx_a2 = vectorsData.IC.x * a2.x - vectorsData.IC.y * a2.y;
+          const ICy_a2 = vectorsData.IC.x * a2.y + vectorsData.IC.y * a2.x;
+
+          return (vectorsData.IA.y + IBy_a + ICy_a2) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      V0: {
+        get x() {
+          return (vectorsData.VA.x + vectorsData.VB.x + vectorsData.VC.x) / 3;
+        },
+        get y() {
+          return (vectorsData.VA.y + vectorsData.VB.y + vectorsData.VC.y) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      V1: {
+        get x() {
+          // alpha^2 * VB
+          const VBx_a2 = vectorsData.VB.x * a2.x - vectorsData.VB.y * a2.y;
+          const VBy_a2 = vectorsData.VB.x * a2.y + vectorsData.VB.y * a2.x;
+          // alpha * VC
+          const VCx_a = vectorsData.VC.x * a.x - vectorsData.VC.y * a.y;
+          const VCy_a = vectorsData.VC.x * a.y + vectorsData.VC.y * a.x;
+
+          return (vectorsData.VA.x + VBx_a2 + VCx_a) / 3;
+        },
+        get y() {
+          // alpha^2 * VB
+          const VBx_a2 = vectorsData.VB.x * a2.x - vectorsData.VB.y * a2.y;
+          const VBy_a2 = vectorsData.VB.x * a2.y + vectorsData.VB.y * a2.x;
+          // alpha * VC
+          const VCx_a = vectorsData.VC.x * a.x - vectorsData.VC.y * a.y;
+          const VCy_a = vectorsData.VC.x * a.y + vectorsData.VC.y * a.x;
+
+          return (vectorsData.VA.y + VBy_a2 + VCy_a) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      V2: {
+        get x() {
+          // alpha^2 * VB
+          const VBx_a = vectorsData.VB.x * a.x - vectorsData.VB.y * a.y;
+          const VBy_a = vectorsData.VB.x * a.y + vectorsData.VB.y * a.x;
+          // alpha * VC
+          const VCx_a2 = vectorsData.VC.x * a2.x - vectorsData.VC.y * a2.y;
+          const VCy_a2 = vectorsData.VC.x * a2.y + vectorsData.VC.y * a2.x;
+
+          return (vectorsData.VA.x + VBx_a + VCx_a2) / 3;
+        },
+        get y() {
+          // alpha^2 * VB
+          const VBx_a = vectorsData.VB.x * a.x - vectorsData.VB.y * a.y;
+          const VBy_a = vectorsData.VB.x * a.y + vectorsData.VB.y * a.x;
+          // alpha * VC
+          const VCx_a2 = vectorsData.VC.x * a2.x - vectorsData.VC.y * a2.y;
+          const VCy_a2 = vectorsData.VC.x * a2.y + vectorsData.VC.y * a2.x;
+
+          return (vectorsData.VA.y + VBy_a + VCy_a2) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      Z0: {
+        get x() {
+          return (vectorsData.ZA.x + vectorsData.ZB.x + vectorsData.ZC.x) / 3;
+        },
+        get y() {
+          return (vectorsData.ZA.y + vectorsData.ZB.y + vectorsData.ZC.y) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      Z1: {
+        get x() {
+          // alpha^2 * ZB
+          const ZBx_a2 = vectorsData.ZB.x * a2.x - vectorsData.ZB.y * a2.y;
+          const ZBy_a2 = vectorsData.ZB.x * a2.y + vectorsData.ZB.y * a2.x;
+          // alpha * ZC
+          const ZCx_a = vectorsData.ZC.x * a.x - vectorsData.ZC.y * a.y;
+          const ZCy_a = vectorsData.ZC.x * a.y + vectorsData.ZC.y * a.x;
+
+          return (vectorsData.ZA.x + ZBx_a2 + ZCx_a) / 3;
+        },
+        get y() {
+          // alpha^2 * ZB
+          const ZBx_a2 = vectorsData.ZB.x * a2.x - vectorsData.ZB.y * a2.y;
+          const ZBy_a2 = vectorsData.ZB.x * a2.y + vectorsData.ZB.y * a2.x;
+          // alpha * ZC
+          const ZCx_a = vectorsData.ZC.x * a.x - vectorsData.ZC.y * a.y;
+          const ZCy_a = vectorsData.ZC.x * a.y + vectorsData.ZC.y * a.x;
+
+          return (vectorsData.ZA.y + ZBy_a2 + ZCy_a) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      Z2: {
+        get x() {
+          // alpha^2 * ZB
+          const ZBx_a = vectorsData.ZB.x * a.x - vectorsData.ZB.y * a.y;
+          const ZBy_a = vectorsData.ZB.x * a.y + vectorsData.ZB.y * a.x;
+          // alpha * ZC
+          const ZCx_a2 = vectorsData.ZC.x * a2.x - vectorsData.ZC.y * a2.y;
+          const ZCy_a2 = vectorsData.ZC.x * a2.y + vectorsData.ZC.y * a2.x;
+
+          return (vectorsData.ZA.x + ZBx_a + ZCx_a2) / 3;
+        },
+        get y() {
+          // alpha^2 * ZB
+          const ZBx_a = vectorsData.ZB.x * a.x - vectorsData.ZB.y * a.y;
+          const ZBy_a = vectorsData.ZB.x * a.y + vectorsData.ZB.y * a.x;
+          // alpha * ZC
+          const ZCx_a2 = vectorsData.ZC.x * a2.x - vectorsData.ZC.y * a2.y;
+          const ZCy_a2 = vectorsData.ZC.x * a2.y + vectorsData.ZC.y * a2.x;
+
+          return (vectorsData.ZA.y + ZBy_a + ZCy_a2) / 3;
+        },
+        get magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); },
+        get angle() { return Math.atan2(this.y, this.x) * 180 / Math.PI; }
+      },
+      // 1) ZAB = (VB – VA) / (IB – IA)
+      ZAB: {
+        get x() {
+          const Nx = vectorsData.VB.x - vectorsData.VA.x;
+          const Ny = vectorsData.VB.y - vectorsData.VA.y;
+          const Dx = vectorsData.IB.x - vectorsData.IA.x;
+          const Dy = vectorsData.IB.y - vectorsData.IA.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Nx * Dx + Ny * Dy) / denom; // Real part
+        },
+        get y() {
+          const Nx = vectorsData.VB.x - vectorsData.VA.x;
+          const Ny = vectorsData.VB.y - vectorsData.VA.y;
+          const Dx = vectorsData.IB.x - vectorsData.IA.x;
+          const Dy = vectorsData.IB.y - vectorsData.IA.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Ny * Dx - Nx * Dy) / denom; // Imag part
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 2) ZBC = (VC – VB) / (IC – IB)
+      ZBC: {
+        get x() {
+          const Nx = vectorsData.VC.x - vectorsData.VB.x;
+          const Ny = vectorsData.VC.y - vectorsData.VB.y;
+          const Dx = vectorsData.IC.x - vectorsData.IB.x;
+          const Dy = vectorsData.IC.y - vectorsData.IB.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Nx * Dx + Ny * Dy) / denom;
+        },
+        get y() {
+          const Nx = vectorsData.VC.x - vectorsData.VB.x;
+          const Ny = vectorsData.VC.y - vectorsData.VB.y;
+          const Dx = vectorsData.IC.x - vectorsData.IB.x;
+          const Dy = vectorsData.IC.y - vectorsData.IB.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Ny * Dx - Nx * Dy) / denom;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 3) ZCA = (VA – VC) / (IA – IC)
+      ZCA: {
+        get x() {
+          const Nx = vectorsData.VA.x - vectorsData.VC.x;
+          const Ny = vectorsData.VA.y - vectorsData.VC.y;
+          const Dx = vectorsData.IA.x - vectorsData.IC.x;
+          const Dy = vectorsData.IA.y - vectorsData.IC.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Nx * Dx + Ny * Dy) / denom;
+        },
+        get y() {
+          const Nx = vectorsData.VA.x - vectorsData.VC.x;
+          const Ny = vectorsData.VA.y - vectorsData.VC.y;
+          const Dx = vectorsData.IA.x - vectorsData.IC.x;
+          const Dy = vectorsData.IA.y - vectorsData.IC.y;
+          const denom = Dx * Dx + Dy * Dy;
+          return (Ny * Dx - Nx * Dy) / denom;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 4) ZsymetricalTotal = Z0 + Z1 + Z2
+      ZsymetricalTotal: {
+        get x() {
+          return vectorsData.Z0.x + vectorsData.Z1.x + vectorsData.Z2.x;
+        },
+        get y() {
+          return vectorsData.Z0.y + vectorsData.Z1.y + vectorsData.Z2.y;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 5) Zn = (Z0 – Z1) / 3
+      Zn: {
+        get x() {
+          const Nx = vectorsData.Z0.x - vectorsData.Z1.x;
+          return Nx / 3;
+        },
+        get y() {
+          const Ny = vectorsData.Z0.y - vectorsData.Z1.y;
+          return Ny / 3;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 6) YA = IA / VA
+      YA: {
+        get x() {
+          // (a + jb)/(c + jd) => real = (ac + bd)/(c^2 + d^2)
+          const Ax = vectorsData.IA.x, Ay = vectorsData.IA.y;
+          const Bx = vectorsData.VA.x, By = vectorsData.VA.y;
+          const denom = Bx * Bx + By * By;
+          return (Ax * Bx + Ay * By) / denom;
+        },
+        get y() {
+          const Ax = vectorsData.IA.x, Ay = vectorsData.IA.y;
+          const Bx = vectorsData.VA.x, By = vectorsData.VA.y;
+          const denom = Bx * Bx + By * By;
+          return (Ay * Bx - Ax * By) / denom;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 7) YB = IB / VB
+      YB: {
+        get x() {
+          const Ax = vectorsData.IB.x, Ay = vectorsData.IB.y;
+          const Bx = vectorsData.VB.x, By = vectorsData.VB.y;
+          const denom = Bx * Bx + By * By;
+          return (Ax * Bx + Ay * By) / denom;
+        },
+        get y() {
+          const Ax = vectorsData.IB.x, Ay = vectorsData.IB.y;
+          const Bx = vectorsData.VB.x, By = vectorsData.VB.y;
+          const denom = Bx * Bx + By * By;
+          return (Ay * Bx - Ax * By) / denom;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+
+      // 8) YC = IC / VC
+      YC: {
+        get x() {
+          const Ax = vectorsData.IC.x, Ay = vectorsData.IC.y;
+          const Bx = vectorsData.VC.x, By = vectorsData.VC.y;
+          const denom = Bx * Bx + By * By;
+          return (Ax * Bx + Ay * By) / denom;
+        },
+        get y() {
+          const Ax = vectorsData.IC.x, Ay = vectorsData.IC.y;
+          const Bx = vectorsData.VC.x, By = vectorsData.VC.y;
+          const denom = Bx * Bx + By * By;
+          return (Ay * Bx - Ax * By) / denom;
+        },
+        get magnitude() {
+          const dx = this.x, dy = this.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        },
+        get angle() {
+          return Math.atan2(this.y, this.x) * 180 / Math.PI;
+        }
+      },
+    };
+
+    var IA_dataset, VA_dataset, IB_dataset, IC_dataset, VB_dataset, VC_dataset;
+
+    //----------- polar
+
+    const padding = 80;
+    const viz_polarElementsWidth = document.getElementById("viz_polar");
+    const margin_polar = { top: 20, right: 20, bottom: 30, left: 50 };
+    const width_polar = Math.min(viz_polarElementsWidth.clientWidth, viz_polarElementsWidth.clientWidth);
+    const height_polar = width_polar;
+
+    let radius = width_polar / 2 - padding;
+
+    var r = d3.scaleLinear().domain([0, MAX_yScale_I]).range([0, radius]);
+    var rv = d3.scaleLinear().domain([0, MAX_yScale_V]).range([0, radius]);
+
+    var svgPolar;
+
+
+    var mag = rv(MAX_yScale_V), magI = r(MAX_yScale_I), p = { x: (0) / 4, y: (0) / 4 };
+    var va, vb, vc, po;
+    var [psa, psb, psc] = [[va], [vb], [vc]];
+    var ia, ib, ic, po;
+    var [psai, psbi, psci] = [[ia], [ib], [ic]];
+
+
+
+    var psResult = new Array(6);
+    var ps2 = psResult[0], ps2i = psResult[1], ps1 = psResult[2], ps1i = psResult[3], ps0 = psResult[4], ps0i = psResult[5];
+    var vs = psResult[6], is = psResult[7];
+    var svgOverlay;
+    var svgOverlay_I;
+    var svgOverlay_V;
+    var svgOverlay_I_O;
+    var runningLine_I;
+    var runningLine_V;
+    var runningLine_I_O;
+    var widthOverlay;
+  </script>
+</body>
+
+</html>
