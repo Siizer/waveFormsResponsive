@@ -202,10 +202,10 @@ export function complexAdd4(a, b, c, d) {
   a = allToObj([a,b,c,d])[0]
   b = allToObj([a,b,c,d])[1]
   c = allToObj([a,b,c,d])[2]
-  d = allToObj([a,b,c,d])[0]
+  d = allToObj([a,b,c,d])[3]
   const real = a.x + b.x + c.x + d.x;
   const imaginary = a.y + b.y + c.y + d.y;
-  
+
   return { x: real, y: imaginary };
 }
 
