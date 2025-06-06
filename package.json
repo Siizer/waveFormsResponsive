@@ -1,0 +1,14 @@
+{
+  "name": "waveformsresponsive",
+  "version": "1.0.0",
+  "description": "Interactive waveform & phasor visualization",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
