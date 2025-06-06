@@ -123,7 +123,7 @@ diagramGroup.append("path").attr("d", `m ${w - 17.5 - 10},${margin - 21 + 10} 10
     textSelection
     .append("tspan")
     .style("text-decoration", "none")
-    .text(`${(d.key ==='ZsymetricalTotal') ? 'ZT' : d.key} = ${magnitude} `);
+    .text(`${(d.key ==='ZsymmetricalTotal') ? 'ZT' : d.key} = ${magnitude} `);
     textSelection
     .append("tspan")
     .style("text-decoration", "underline")
@@ -133,7 +133,7 @@ diagramGroup.append("path").attr("d", `m ${w - 17.5 - 10},${margin - 21 + 10} 10
   textSelection
     .append("tspan")
     .style("text-decoration", null)
-    .text(` , ${(d.key ==='ZsymetricalTotal') ? 'ZT' : d.key} = ${x.toFixed(3)} ${sign} j ${yAbs}`);
+    .text(` , ${(d.key ==='ZsymmetricalTotal') ? 'ZT' : d.key} = ${x.toFixed(3)} ${sign} j ${yAbs}`);
   }
   
   // Now the update function
@@ -200,7 +200,7 @@ diagramGroup.append("path").attr("d", `m ${w - 17.5 - 10},${margin - 21 + 10} 10
   
       d3.select(this)
         .append("tspan")
-        .text(`${(d.key ==='ZsymetricalTotal') ? 'ZT' : d.key} = ${magnitude} `);
+        .text(`${(d.key ==='ZsymmetricalTotal') ? 'ZT' : d.key} = ${magnitude} `);
   
       d3.select(this)
         .append("tspan")
@@ -245,7 +245,7 @@ diagramGroup.append("path").attr("d", `m ${w - 17.5 - 10},${margin - 21 + 10} 10
 
         d3.select(this)
           .append("tspan")
-          .text(`${(d.key ==='ZsymetricalTotal') ? 'ZT' : d.key} = ${magnitude}`);
+          .text(`${(d.key ==='ZsymmetricalTotal') ? 'ZT' : d.key} = ${magnitude}`);
     
         d3.select(this)
           .append("tspan")

@@ -85,7 +85,7 @@ const { updateQuantity: updatePowerZaids } = aP_.quantity(
   vectorsData,
   svg_Zaids ,
   colors,
-  ["ZsymetricalTotal", "Zn"],
+  ["ZsymmetricalTotal", "Zn"],
   "ZT = Z1+Z2+Z0, Zn"
 );
 
